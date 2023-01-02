@@ -9,7 +9,9 @@
 #include "game.h"
 #include "menu.h"
 
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #ifdef TINYGL
 #include "GL/gl.h"
 #else
@@ -169,8 +171,10 @@ typedef struct
 
 	bool				mouseHoverValid;
 //	int					mouseHoverColumn;
+#ifndef WATCH
 	SDL_Cursor*			handCursor;
 	SDL_Cursor*			standardCursor;
+#endif
 
 	float				idleTime;
 
@@ -201,8 +205,10 @@ static void InitMenuNavigation(void)
 	nav->menuState = kMenuStateOff;
 //	nav->mouseHoverColumn = -1;
 
+#ifndef WATCH
 	nav->standardCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_ARROW);
 	nav->handCursor = SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_HAND);
+#endif
 
 	NewObjectDefinitionType arrowDef =
 	{
@@ -230,6 +236,7 @@ static void DisposeMenuNavigation(void)
 		}
 	}
 
+#ifndef WATCH
 	if (nav->standardCursor != NULL)
 	{
 		SDL_FreeCursor(nav->standardCursor);
@@ -241,6 +248,7 @@ static void DisposeMenuNavigation(void)
 		SDL_FreeCursor(nav->handCursor);
 		nav->handCursor = NULL;
 	}
+#endif
 
 	SafeDisposePtr((Ptr) nav);
 
@@ -268,20 +276,24 @@ void KillMenu(int returnCode)
 
 static void SetStandardMouseCursor(void)
 {
+#ifndef WATCH
 	if (gNav->standardCursor != NULL &&
 		gNav->standardCursor != SDL_GetCursor())
 	{
 		SDL_SetCursor(gNav->standardCursor);
 	}
+#endif
 }
 
 static void SetHandMouseCursor(void)
 {
+#ifndef WATCH
 	if (gNav->handCursor != NULL &&
 		gNav->handCursor != SDL_GetCursor())
 	{
 		SDL_SetCursor(gNav->handCursor);
 	}
+#endif
 }
 
 ObjNode* GetCurrentMenuItemObject(void)
@@ -330,6 +342,9 @@ static InputBinding* GetBindingAtRow(int row)
 
 static const char* GetKeyBindingName(int row, int col)
 {
+#ifdef WATCH
+    return "???";
+#else
 	int16_t scancode = GetBindingAtRow(row)->key[col];
 
 	switch (scancode)
@@ -341,6 +356,7 @@ static const char* GetKeyBindingName(int row, int col)
 		case SDL_SCANCODE_SEMICOLON:		return "Semicolon";
 		default:							return SDL_GetScancodeName(scancode);
 	}
+#endif
 }
 
 static const char* GetPadBindingName(int row, int col)
@@ -349,6 +365,7 @@ static const char* GetPadBindingName(int row, int col)
 
 	switch (pb->type)
 	{
+#ifndef WATCH
 		case kInputTypeUnbound:
 			return Localize(STR_UNBOUND_PLACEHOLDER);
 
@@ -402,7 +419,8 @@ static const char* GetPadBindingName(int row, int col)
 					return SDL_GameControllerGetStringForAxis(pb->id);
 			}
 			break;
-
+#endif
+            
 		default:
 			return "???";
 	}
@@ -410,6 +428,9 @@ static const char* GetPadBindingName(int row, int col)
 
 static const char* GetMouseBindingName(int row)
 {
+#ifdef WATCH
+    return "???";
+#else
 	DECLARE_STATIC_WORKBUF(buf, bufSize);
 
 	InputBinding* binding = GetBindingAtRow(row);
@@ -426,6 +447,7 @@ static const char* GetMouseBindingName(int row)
 			snprintf(buf, bufSize, "%s %d", Localize(STR_BUTTON), binding->mouseButton);
 			return buf;
 	}
+#endif
 }
 
 static ObjNode* MakeKbText(int row, int keyNo)
@@ -973,16 +995,20 @@ static void NavigateCycler(const MenuItem* entry)
 
 	if (GetNewNeedStateAnyP(kNeed_UILeft)
 		|| GetNewNeedStateAnyP(kNeed_UIPrev)
+#ifndef WATCH
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT))
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELDOWN))
+#endif
 		)
 	{
 		delta = -1;
 	}
 	else if (GetNewNeedStateAnyP(kNeed_UIRight)
 		|| GetNewNeedStateAnyP(kNeed_UINext)
+#ifndef WATCH
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_WHEELUP))
+#endif
 		)
 	{
 		delta = 1;
@@ -1062,13 +1088,19 @@ enum
 
 	if (GetNeedStateAnyP(kNeed_UILeft)
 		|| GetNeedStateAnyP(kNeed_UIPrev)
-		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT)))
+#ifndef WATCH
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_RIGHT))
+#endif
+        )
 	{
 		delta = -1;
 	}
 	else if (GetNeedStateAnyP(kNeed_UIRight)
 		|| GetNeedStateAnyP(kNeed_UINext)
-		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
+#ifndef WATCH
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
+#endif
+        )
 	{
 		delta = 1;
 	}
@@ -1210,8 +1242,11 @@ static void NavigateKeyBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
+#ifndef WATCH
 		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
-		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE))
+#endif
+        )
 	{
 		TwitchOutSelection();
 		gNav->idleTime = 0;
@@ -1223,6 +1258,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		return;
 	}
 
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_RETURN)
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
 		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
@@ -1240,6 +1276,7 @@ static void NavigateKeyBinding(const MenuItem* entry)
 		ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP_CANCEL);
 		return;
 	}
+#endif
 }
 
 static void NavigatePadBinding(const MenuItem* entry)
@@ -1280,8 +1317,11 @@ static void NavigatePadBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIDelete)
+#ifndef WATCH
 		|| GetNewKeyState(CLEAR_BINDING_SCANCODE)
-		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_MIDDLE))
+#endif
+        )
 	{
 		TwitchOutSelection();
 		gNav->idleTime = 0;
@@ -1293,8 +1333,11 @@ static void NavigatePadBinding(const MenuItem* entry)
 	}
 
 	if (GetNewNeedStateAnyP(kNeed_UIConfirm)
+#ifndef WATCH
 		|| GetNewKeyState(SDL_SCANCODE_KP_ENTER)
-		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT)))
+		|| (gNav->mouseHoverValid && GetNewClickState(SDL_BUTTON_LEFT))
+#endif
+        )
 	{
 		// Unlike keyboard bindings, don't call InvalidateAllInputs() here,
 		// because we don't keep a shadow array of all gamepad button states,
@@ -1348,7 +1391,10 @@ static void NavigateMenu(void)
 	GAME_ASSERT(gNav->style.isInteractive);
 
 	if (GetNewNeedStateAnyP(kNeed_UIBack)
-		|| GetNewClickState(SDL_BUTTON_X1))
+#ifndef WATCH
+		|| GetNewClickState(SDL_BUTTON_X1)
+#endif
+    )
 	{
 		GoBackInHistory();
 		return;
@@ -1448,6 +1494,7 @@ static void AwaitKeyPress(void)
 	GAME_ASSERT(keyNo >= 0);
 	GAME_ASSERT(keyNo < MAX_USER_BINDINGS_PER_NEED);
 
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
 		PlayEffect(kSfxError);
@@ -1465,6 +1512,7 @@ static void AwaitKeyPress(void)
 			goto updateText;
 		}
 	}
+#endif
 	return;
 
 updateText:
@@ -1475,13 +1523,18 @@ updateText:
 	ReplaceMenuText(STR_CONFIGURE_KEYBOARD_HELP, STR_CONFIGURE_KEYBOARD_HELP);
 }
 
+#ifdef WATCH
+static bool AwaitGamepadPress()
+#else
 static bool AwaitGamepadPress(SDL_GameController* controller)
+#endif
 {
 	int row = gNav->menuRow;
 	int btnNo = gNav->menuCol;
 	GAME_ASSERT(btnNo >= 0);
 	GAME_ASSERT(btnNo < MAX_USER_BINDINGS_PER_NEED);
 
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE)
 		|| SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_START))
 	{
@@ -1536,6 +1589,7 @@ static bool AwaitGamepadPress(SDL_GameController* controller)
 			goto updateText;
 		}
 	}
+#endif
 
 	return false;
 
@@ -1558,6 +1612,7 @@ static void AwaitMetaGamepadPress(void)
 
 	bool anyGamepadFound = false;
 
+#ifndef WATCH
 	for (int i = 0; i < MAX_LOCAL_PLAYERS; i++)
 	{
 		SDL_GameController* controller = GetController(i);
@@ -1570,6 +1625,7 @@ static void AwaitMetaGamepadPress(void)
 			}
 		}
 	}
+#endif
 
 	if (!anyGamepadFound)
 	{
@@ -1584,6 +1640,7 @@ static void AwaitMetaGamepadPress(void)
 
 static void AwaitMouseClick(void)
 {
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_ESCAPE))
 	{
 		MakeText(GetMouseBindingName(gNav->menuRow), gNav->menuRow, 1, 0);
@@ -1592,6 +1649,7 @@ static void AwaitMouseClick(void)
 		PlayEffect(kSfxError);
 		return;
 	}
+#endif
 
 	InputBinding* binding = GetBindingAtRow(gNav->menuRow);
 
@@ -2189,7 +2247,7 @@ int StartMenu(
 	DoSDLMaintenance();
 	MyFlushEvents();
 
-	SetStandardMouseCursor();
+//	SetStandardMouseCursor();
 //	SDL_ShowCursor(cursorStateBeforeMenu);
 
 	int finalPick = gNav->menuPick;

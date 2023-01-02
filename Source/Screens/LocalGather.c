@@ -9,7 +9,9 @@
 /****************************/
 
 #include "game.h"
-#include <SDL.h>
+#ifndef WATCH
+#include <SDL_scancode.h>
+#endif
 
 
 /****************************/
@@ -227,7 +229,11 @@ static int DoLocalGatherControls(void)
 
 		/* SEE IF SELECT THIS ONE */
 
-	if (GetNewKeyState(SDL_SCANCODE_RETURN) || GetNewKeyState(SDL_SCANCODE_KP_ENTER))
+#ifdef WATCH
+	if (false)
+#else
+    if (GetNewKeyState(SDL_SCANCODE_RETURN) || GetNewKeyState(SDL_SCANCODE_KP_ENTER))
+#endif
 	{
 		// User pressed [ENTER] on keyboard
 		if (gNumControllersMissing == 1)

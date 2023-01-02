@@ -11,13 +11,16 @@
 
 #include "game.h"
 #include "network.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
 
+#ifndef WATCH
 extern	SDL_Window* 	gSDLWindow;
-
+#endif
 
 /****************************/
 /*    CONSTANTS             */
@@ -58,7 +61,9 @@ void DoAlert(const char* format, ...)
 	va_end(args);
 
 	printf("CMR Alert: %s\n", message);
+#ifndef WATCH
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, NULL);
+#endif
 
 	Exit2D();
 }
@@ -77,7 +82,9 @@ void DoFatalAlert(const char* format, ...)
 	va_end(args);
 
 	printf("CMR Fatal Alert: %s\n", message);
+#ifndef WATCH
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Cro-Mag Rally", message, NULL);//gSDLWindow);
+#endif
 
 	Exit2D();
 	CleanQuit();
@@ -388,8 +395,10 @@ unsigned long deltaTime;
 		gFramesPerSecond = DEFAULT_FPS;
 
 #if _DEBUG
+#ifndef WATCH
 	if (GetKeyState(SDL_SCANCODE_KP_PLUS))		// debug speed-up with KP_PLUS
 		gFramesPerSecond = 10;
+#endif
 #endif
 
 	gFramesPerSecondFrac = 1.0f/gFramesPerSecond;		// calc fractional for multiplication

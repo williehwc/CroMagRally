@@ -10,7 +10,9 @@
 /***************/
 
 #include "game.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 
 
 /**********************/
@@ -57,6 +59,7 @@ void ReadKeyboard(void)
 	}
 
 #if _DEBUG
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_KP_1))		gPlayerInfo[0].superSuspensionTimer	+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_2))		gPlayerInfo[0].stickyTiresTimer		+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_3))		gPlayerInfo[0].invisibilityTimer	+= 3;
@@ -64,6 +67,7 @@ void ReadKeyboard(void)
 	if (GetNewKeyState(SDL_SCANCODE_KP_5))		gPlayerInfo[0].flamingTimer			+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_6))		gPlayerInfo[0].frozenTimer			+= 3;
 	if (GetNewKeyState(SDL_SCANCODE_KP_DIVIDE))	gPlayerInfo[0].numTokens++;
+#endif
 #endif
 }
 

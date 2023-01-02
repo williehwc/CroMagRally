@@ -156,7 +156,11 @@ void DoPaused(void)
 	MenuStyle style = kDefaultMenuStyle;
 	style.canBackOutOfRootMenu = true;
 	style.fadeOutSceneOnExit = false;
+#ifdef WATCH
+    style.darkenPaneOpacity = 0;
+#else
 	style.darkenPaneOpacity = .6f;
+#endif
 	style.labelColor = (OGLColorRGBA){.7,.7,.7,1};
 	style.startButtonExits = true;
 

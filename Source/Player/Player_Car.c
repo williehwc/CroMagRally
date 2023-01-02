@@ -174,6 +174,10 @@ short	gPlayerMultiPassCount = 0;
 UserPhysics		gUserPhysics;
 Boolean			gUserTamperedWithPhysics = false;
 
+#ifdef WATCH
+extern bool gCrashThud;
+#endif
+
 
 /********************** SET DEFAULT PHYSICS ***********************/
 
@@ -1769,6 +1773,9 @@ Boolean		wasInWater;
 				{
 					PlayEffect_Parms3D(EFFECT_CRASH2, &gCoord, NORMAL_CHANNEL_RATE, volume);
 					gPlayerInfo[playerNum].bumpSoundTimer = .5f;
+#ifdef WATCH
+                    gCrashThud = true;
+#endif
 				}
 			}
 

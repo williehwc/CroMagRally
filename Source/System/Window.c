@@ -11,10 +11,14 @@
 /***************/
 
 #include "game.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #include <stdlib.h>
 
+#ifndef WATCH
 extern SDL_Window* gSDLWindow;
+#endif
 
 /****************************/
 /*    PROTOTYPES            */
@@ -49,8 +53,13 @@ int				gGameWindowWidth, gGameWindowHeight;
 void InitWindowStuff(void)
 {
 	// This is filled in from gSDLWindow in-game
+#ifdef PORTRAIT
+    gGameWindowWidth = 320;
+    gGameWindowHeight = 390;
+#else
 	gGameWindowWidth = 640;
 	gGameWindowHeight = 480;
+#endif
 }
 
 
@@ -274,6 +283,7 @@ static void MoveToPreferredDisplay(void)
 
 void SetFullscreenMode(bool enforceDisplayPref)
 {
+#ifndef WATCH
 	if (!gGamePrefs.fullscreen)
 	{
 		SDL_SetWindowFullscreen(gSDLWindow, 0);
@@ -309,4 +319,5 @@ void SetFullscreenMode(bool enforceDisplayPref)
 //	QD3D_OnWindowResized(width, height);
 
 	SDL_ShowCursor(gGamePrefs.fullscreen ? 0 : 1);
+#endif
 }

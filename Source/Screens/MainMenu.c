@@ -16,7 +16,9 @@
 #include "network.h"
 #include "version.h"
 
+#ifndef WATCH
 #include <SDL.h>
+#endif
 
 /****************************/
 /*    PROTOTYPES            */
@@ -65,10 +67,16 @@ enum
 static const MenuItem gMainMenuTree[] =
 {
 	{ .id='titl' },
-	{kMIPick, STR_NEW_GAME,		.next='play', },
+#ifdef WATCH
+	{kMIPick, STR_NEW_GAME,		.next='spgm', },
+#else
+    {kMIPick, STR_NEW_GAME,     .next='play', },
+#endif
 	{kMIPick, STR_OPTIONS,		.next='optn', },
 	{kMIPick, STR_EXTRAS,		.next='xtra', },
+#ifndef WATCH
 	{kMIPick, STR_QUIT,			.next='EXIT', .callback=OnPickQuitApplication, .id=MENU_EXITCODE_QUITGAME },
+#endif
 
 	{ .id='play' },
 	{kMIPick, STR_1PLAYER,	.id=1, .callback=OnConfirmPlayMenu, .next='spgm' },
@@ -91,7 +99,9 @@ static const MenuItem gMainMenuTree[] =
 		}
 	},
 	{kMIPick, STR_SETTINGS, .callback=RegisterSettingsMenu, .next='sett' },
+#ifndef WATCH
 	{kMIPick, STR_CLEAR_SAVED_GAME, .next='clrs', .getLayoutFlags=IsClearSavedGameAvailable, .customHeight=.7 },
+#endif
 
 	{ .id='xtra' },
 	{kMIPick, STR_SCOREBOARD,		.id=MENU_EXITCODE_SCOREBOARD,	.next='EXIT' },
@@ -180,7 +190,11 @@ static void UpdateMainMenuScreen(void)
 	{
 				/* INITIATE SRD */
 
-		if (GetMenuIdleTime() > DEMO_DELAY || GetNewKeyState(SDL_SCANCODE_F1))
+#ifdef WATCH
+		if (GetMenuIdleTime() > DEMO_DELAY)
+#else
+        if (GetMenuIdleTime() > DEMO_DELAY || GetNewKeyState(SDL_SCANCODE_F1))
+#endif
 		{
 			gGameView->fadePillarbox = true;
 			KillMenu(MENU_EXITCODE_SELFRUNDEMO);

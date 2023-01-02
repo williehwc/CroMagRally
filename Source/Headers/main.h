@@ -4,7 +4,9 @@
 
 #ifdef TINYGL
 #include "zbuffer.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #endif
 
 #pragma once

@@ -1,6 +1,6 @@
 [submodule "extern/Pomme"]
 	path = extern/Pomme
-	url = https://github.com/jorio/Pomme
+	url = https://github.com/williehwc/Pomme
 [submodule "extern/tinygl"]
 	path = extern/tinygl
-	url = https://github.com/C-Chads/tinygl.git
+	url = https://github.com/williehwc/tinygl.git

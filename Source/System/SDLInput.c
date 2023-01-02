@@ -2,6 +2,7 @@
 // (C) 2022 Iliyas Jorio
 // This file is part of Cro-Mag Rally. https://github.com/jorio/CroMagRally
 
+#ifndef WATCH
 #include "game.h"
 #include <SDL.h>
 
@@ -905,3 +906,4 @@ void ResetDefaultMouseBindings(void)
 		gGamePrefs.bindings[i].mouseButton = kDefaultInputBindings[i].mouseButton;
 	}
 }
+#endif

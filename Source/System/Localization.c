@@ -4,7 +4,9 @@
 
 #include "game.h"
 #include <string.h>
+#ifndef WATCH
 #include <SDL.h>
+#endif
 
 #define CSV_PATH ":system:strings.csv"
 
@@ -92,6 +94,7 @@ GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 {
 	GameLanguageID languageID = LANGUAGE_ENGLISH;
 
+#ifndef WATCH
 #if !(SDL_VERSION_ATLEAST(2,0,14))
 	#warning Please upgrade to SDL 2.0.14 or later for SDL_GetPreferredLocales. Will default to English for now.
 #else
@@ -113,6 +116,7 @@ GameLanguageID GetBestLanguageIDFromSystemLocale(void)
 
 foundLocale:
 	SDL_free(localeList);
+#endif
 #endif
 
 	return languageID;

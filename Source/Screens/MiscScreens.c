@@ -996,13 +996,17 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	ObjNode* url1 = TextMesh_New("PANGEASOFT.NET/CROMAG", kTextMeshAlignLeft, &textDef);
 
 	textDef.coord.y += 0.4 * 64 * 6;
-	TextMesh_New("HOMEPAGE OF THE MODERN VERSION\nOF CRO-MAG RALLY:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
+	TextMesh_New("MODERN PORTS\nOF CRO-MAG RALLY:", kTextMeshAlignBottom | kTextMeshAlignLeft, &textDef);
 
 	textDef.coord.y += 0.4 * 64;
 	ObjNode* url2 = TextMesh_New("JORIO.ITCH.IO/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
+    
+    textDef.coord.y += 0.4 * 64;
+    ObjNode* url3 = TextMesh_New("GITHUB.COM/WILLIEHWC/CROMAGRALLY", kTextMeshAlignLeft, &textDef);
 
-	url1->ColorFilter = url2->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
+	url1->ColorFilter = url2->ColorFilter = url3->ColorFilter = (OGLColorRGBA) { .8, .2, .2, 1 };
 
+#ifndef WATCH
 	textDef.coord.x = 0;
 	textDef.coord.y = 220;
 	textDef.scale = 0.27f;
@@ -1023,6 +1027,7 @@ OGLVector3D			fillDirection1 = { .9, -.3, -1 };
 	qrCodeDef.coord.y += 0.4*64*7;
 	qrCodeDef.type = 2;
 	MakeSpriteObject(&qrCodeDef);
+#endif
 
 			/*************/
 			/* MAIN LOOP */

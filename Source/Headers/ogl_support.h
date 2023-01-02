@@ -6,7 +6,9 @@
 
 #include "main.h"
 #ifdef TINYGL
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #include "GL/gl.h"
 #else
 #include <SDL_opengl.h>

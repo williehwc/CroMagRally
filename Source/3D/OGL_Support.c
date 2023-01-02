@@ -13,7 +13,9 @@
 #include "game.h"
 #include "stb_image.h"
 #include "pillarbox.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #ifdef TINYGL
 #include "GL/gl.h"
 #else
@@ -21,12 +23,20 @@
 #endif
 #include <math.h>
 
+#ifndef WATCH
 extern SDL_Window*		gSDLWindow;
+#endif
 //extern	GWorldPtr		gTerrainDebugGWorld;
 
 #ifdef TINYGL
 extern ZBuffer* gFrameBuffer;
+#ifdef WATCH
+extern PIXEL* gPixels;
+extern GLint gPitch;
+extern bool gLock;
+#else
 extern SDL_Surface* gSurface;
+#endif
 #endif
 
 _Static_assert(sizeof(OGLColorBGRA16) == 2, "OGLColorBGRA16 must fit on 2 bytes");
@@ -262,9 +272,9 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 
 
 				/* UPDATE WINDOW SIZE */
-
+#ifndef WATCH
 	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
-
+#endif
 
 				/* SETUP */
 
@@ -320,7 +330,9 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 			/* LOAD FONT */
 
 	LoadSpriteGroup(SPRITE_GROUP_FONT, setupDefPtr->view.fontName, kAtlasLoadFont);
+#ifndef WATCH
 	InitDebugText();
+#endif
 
 
 			/* PRIME PILLARBOX */
@@ -358,7 +370,9 @@ void OGL_DisposeGameView(void)
 
 static void OGL_CreateDrawContext(void)
 {
+#ifndef WATCH
 	GAME_ASSERT_MESSAGE(gSDLWindow, "Window must be created before the DC!");
+#endif
 
 #ifndef TINYGL
 			/* CREATE AGL CONTEXT & ATTACH TO WINDOW */
@@ -577,8 +591,9 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 			/* UPDATE WINDOW SIZE ONCE PER FRAME */
 
+#ifndef WATCH
 	SDL_GetWindowSize(gSDLWindow, &gGameWindowWidth, &gGameWindowHeight);
-
+#endif
 
 			/* INIT SOME STUFF */
 
@@ -651,6 +666,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 		/* SEE IF SHOW DEBUG INFO */
 		/**************************/
 
+#ifndef WATCH
 	if (GetNewKeyState(SDL_SCANCODE_F8))
 	{
 		if (++gDebugMode > 3)
@@ -661,6 +677,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 		else
 			glPolygonMode(GL_FRONT_AND_BACK ,GL_FILL);
 	}
+#endif
 
 
             /**************/
@@ -670,6 +687,11 @@ void OGL_DrawScene(void (*drawRoutine)(void))
            /* SWAP THE BUFFS */
 
 #ifdef TINYGL
+#ifdef WATCH
+    gLock = true;
+    ZB_copyFrameBuffer(gFrameBuffer, gPixels, gPitch);
+    gLock = false;
+#else
     if (SDL_MUSTLOCK(gSurface)) {
         if (SDL_LockSurface(gSurface) == 0) {
             ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
@@ -679,6 +701,7 @@ void OGL_DrawScene(void (*drawRoutine)(void))
         ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
     }
     SDL_UpdateWindowSurface(gSDLWindow);
+#endif
 #else
     SDL_GL_SwapWindow(gSDLWindow);                    // end render loop
 #endif
@@ -1451,8 +1474,13 @@ void OGL_UpdatePaneLogicalSize(Byte whichPane)
 
 	if (whichPane >= GetOverlayPaneNumber())
 	{
+#ifdef PORTRAIT
+        referenceWidth = 400;
+        referenceHeight = 450;
+#else
 		referenceWidth = 640;
 		referenceHeight = 480;
+#endif
 	}
 	else
 	switch (gActiveSplitScreenMode)
@@ -1490,8 +1518,13 @@ void OGL_UpdatePaneLogicalSize(Byte whichPane)
 				goto _4pgrid;
 
 		default:
+#ifdef PORTRAIT
+            referenceWidth = 400;
+            referenceHeight = 450;
+#else
 			referenceWidth = 640;
 			referenceHeight = 480;
+#endif
 			break;
 	}
 

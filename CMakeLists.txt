@@ -49,7 +49,8 @@ set(POMME_NO_VIDEO true)
 set(POMME_NO_INPUT true)
 set(POMME_NO_GRAPHICS true)
 set(POMME_NO_QD3D true)
-set(TINYGL_BUILD_STATIC OFF CACHE BOOL "Build libfoo shared library")
+set(TINYGL_BUILD_STATIC ON CACHE BOOL "Build libtinygl static library")
+set(TINYGL_BUILD_SHARED OFF CACHE BOOL "Build libtinygl shared library")
 
 #------------------------------------------------------------------------------
 # DEPENDENCIES
@@ -88,7 +89,7 @@ source_group(TREE ${GAME_SRCDIR} PREFIX "" FILES ${GAME_ALL_SOURCES})
 
 set(GAME_LIBRARIES
 	Pomme
-	tinygl
+	tinygl-static
 	${SDL2_LIBRARIES}
 	OpenGL::GL
 )
@@ -135,7 +136,8 @@ add_compile_definitions(
 target_compile_definitions(${GAME_TARGET} PRIVATE
 	HQ_TERRAIN=1
 	ENABLE_LOADING_SCREEN=0
-	GL_SILENCE_DEPRECATION)
+	GL_SILENCE_DEPRECATION
+	TINYGL)
 
 if(NOT MSVC)
 	target_compile_options(${GAME_TARGET} PRIVATE

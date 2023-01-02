@@ -10,7 +10,9 @@
 /****************************/
 
 #include "game.h"
+#ifndef WATCH
 #include <SDL_scancode.h>
+#endif
 
 /****************************/
 /*    PROTOTYPES            */
@@ -155,7 +157,7 @@ float				oldFPS,oldFPSFrac;
 	gFramesPerSecondFrac *= 1.0f / (float)numPasses;					// adjust frame rate during motion and collision
 	gFramesPerSecond *= 1.0f / (float)numPasses;
 
-
+#ifndef WATCH
 	if (GetKeyState(SDL_SCANCODE_C)
 		&& GetKeyState(SDL_SCANCODE_P)
 		&& GetKeyState(SDL_SCANCODE_U))	//---------- hack to make player a CPU
@@ -163,7 +165,7 @@ float				oldFPS,oldFPSFrac;
 		puts("Engage submarine autopilot");
 		gAutoPilot = true;
 	}
-
+#endif
 
 			/* DO IT IN PASSES */
 

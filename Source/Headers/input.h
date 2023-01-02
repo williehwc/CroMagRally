@@ -110,6 +110,18 @@ enum
 	kControlBit_RearView      = kNeed_RearView,
 };
 
+#ifdef WATCH
+enum
+{
+    INPUT_FLAG_UP    = 1,
+    INPUT_FLAG_DN    = 2,
+    INPUT_FLAG_FWRD  = 4,
+    INPUT_FLAG_BWRD  = 8,
+    INPUT_FLAG_PAUSE = 16,
+    INPUT_FLAG_ESC   = 32,
+    INPUT_FLAG_OK    = 64
+};
+#endif
 
 //============================================================================================
 

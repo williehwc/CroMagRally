@@ -8,15 +8,20 @@
 
 #include <iostream>
 #include <cstring>
+#include <thread>
 
 #if __APPLE__
+#ifndef WATCH
 #include <libproc.h>
 #include <unistd.h>
+#endif
 #endif
 
 extern "C"
 {
+#ifndef WATCH
     #include <SDL.h>
+#endif
 
 #ifdef TINYGL
     #include "GL/gl.h"
@@ -26,14 +31,30 @@ extern "C"
 	#include "game.h"
 	#include "version.h"
 
+#ifndef WATCH
 	SDL_Window* gSDLWindow = nullptr;
+#endif
 	FSSpec gDataSpec;
 	CommandLineOptions gCommandLine;
 	int gCurrentAntialiasingLevel;
 
 #ifdef TINYGL
     ZBuffer* gFrameBuffer = NULL;
+#ifdef WATCH
+    PIXEL* gPixels = NULL;
+    bool gPixelsReady = false;
+    GLint gPitch = NULL;
+    bool gLock = false;
+    std::string gDataPath = "";
+    Byte gInputFlags = 0;
+    bool gInputDecel = false;
+    bool gInputBrake = false;
+    float gInputSteer = 0;
+    bool gCanSteer = false;
+    bool gCrashThud = false;
+#else
     SDL_Surface* gSurface = NULL;
+#endif
 #endif
 
 #if 0 //_WIN32
@@ -50,17 +71,21 @@ static fs::path FindGameData()
 	fs::path dataPath;
 
 #if __APPLE__
-	char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
+#ifdef WATCH
+    dataPath = gDataPath;
+#else
+    char pathbuf[PROC_PIDPATHINFO_MAXSIZE];
 
-	pid_t pid = getpid();
-	int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
-	if (ret <= 0)
-	{
-		throw std::runtime_error(std::string(__func__) + ": proc_pidpath failed: " + std::string(strerror(errno)));
-	}
+    pid_t pid = getpid();
+    int ret = proc_pidpath(pid, pathbuf, sizeof(pathbuf));
+    if (ret <= 0)
+    {
+        throw std::runtime_error(std::string(__func__) + ": proc_pidpath failed: " + std::string(strerror(errno)));
+    }
 
-	dataPath = pathbuf;
-	dataPath = dataPath.parent_path().parent_path() / "Resources";
+    dataPath = pathbuf;
+    dataPath = dataPath.parent_path().parent_path() / "Resources";
+#endif
 #else
 	dataPath = "Data";
 #endif
@@ -136,6 +161,7 @@ static void GetInitialWindowSize(int display, int& width, int& height)
 	const float aspectRatio = 16.0f / 9.0f;
 	const float screenCoverage = 2.0f / 3.0f;
 
+#ifndef WATCH
 	SDL_Rect displayBounds = { .x = 0, .y = 0, .w = 640, .h = 480 };
 	SDL_GetDisplayUsableBounds(display, &displayBounds);
 
@@ -149,6 +175,7 @@ static void GetInitialWindowSize(int display, int& width, int& height)
 		width	= displayBounds.w * screenCoverage;
 		height	= displayBounds.w * screenCoverage / aspectRatio;
 	}
+#endif
 }
 
 static void Boot()
@@ -162,10 +189,12 @@ static void Boot()
 
 retryVideo:
 	// Initialize SDL video subsystem
+#ifndef WATCH
 	if (0 != SDL_Init(SDL_INIT_VIDEO))
 	{
 		throw std::runtime_error("Couldn't initialize SDL video subsystem.");
 	}
+#endif
 
 	// Create window
 #ifndef TINYGL
@@ -181,22 +210,34 @@ retryVideo:
 	}
 #endif
 
+#ifndef WATCH
 	int display = gGamePrefs.monitorNum;
 	if (display >= SDL_GetNumVideoDisplays())
 	{
 		display = 0;
 	}
+#endif
 
-	int initialWidth = 640;
-	int initialHeight = 480;
+#ifdef PORTRAIT
+    int initialWidth = 320;
+    int initialHeight = 390;
+#else
+    int initialWidth = 640;
+    int initialHeight = 480;
+#endif
 	//GetInitialWindowSize(display, initialWidth, initialHeight);
 
 #ifdef TINYGL
+#ifdef WATCH
+    gPitch = initialWidth * 4;
+#else
     int windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;
+#endif
 #else
     int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;
 #endif
     
+#ifndef WATCH
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,
 			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
@@ -221,10 +262,16 @@ retryVideo:
 			throw std::runtime_error("Couldn't create SDL window.");
 		}
 	}
+#endif
 
 #ifdef TINYGL
+#ifdef WATCH
+    gPixels = (PIXEL *) malloc(initialWidth * initialHeight * sizeof(PIXEL));
+    gPixelsReady = true;
+#else
     gSurface = SDL_GetWindowSurface(gSDLWindow);
-    gFrameBuffer = ZB_open(640, 480, ZB_MODE_RGBA, 0);
+#endif
+    gFrameBuffer = ZB_open(initialWidth, initialHeight, ZB_MODE_RGBA, 0);
     glInit(gFrameBuffer);
 #endif
     
@@ -232,6 +279,7 @@ retryVideo:
 	fs::path dataPath = FindGameData();
 
 	// Init joystick subsystem
+#ifndef WATCH
 	{
 		SDL_Init(SDL_INIT_GAMECONTROLLER);
 		auto gamecontrollerdbPath8 = (dataPath / "System" / "gamecontrollerdb.txt").u8string();
@@ -240,14 +288,37 @@ retryVideo:
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_WARNING, "Cro-Mag Rally", "Couldn't load gamecontrollerdb.txt!", gSDLWindow);
 		}
 	}
+#endif
 }
 
 static void Shutdown()
 {
 	Pomme::Shutdown();
+#ifndef WATCH
 	SDL_Quit();
+#endif
 }
 
+#ifdef WATCH
+void GameThread(std::string dataPath) {
+    gDataPath = dataPath;
+    try
+    {
+        Boot();
+        GameMain();
+    }
+    catch (std::exception& ex)
+    {
+        std::string finalErrorMessage = ex.what();
+        std::cerr << "Uncaught exception in game thread: " << finalErrorMessage << "\n";
+    }
+    catch (...) {}
+}
+
+void GetAudio(float *const *stream, int len) {
+    Pomme::GetAudio(stream, len);
+}
+#else
 int main(int argc, char** argv)
 {
 	int				returnCode				= 0;
@@ -291,3 +362,4 @@ int main(int argc, char** argv)
 
 	return returnCode;
 }
+#endif

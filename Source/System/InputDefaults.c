@@ -1,4 +1,6 @@
+#ifndef WATCH
 #include <SDL.h>
+#endif
 #include "input.h"
 
 #if __APPLE__
@@ -21,6 +23,7 @@
 
 const InputBinding kDefaultInputBindings[NUM_CONTROL_NEEDS] =
 {
+#ifndef WATCH
 	[kNeed_ThrowForward] =
 	{
 		.userKey = { SC_THROWF1, SC_THROWF2 },
@@ -143,5 +146,5 @@ const InputBinding kDefaultInputBindings[NUM_CONTROL_NEEDS] =
 		.key = { SDL_SCANCODE_ESCAPE },
 		.pad = { CB(START) },
 	},
-
+#endif
 };

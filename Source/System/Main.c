@@ -12,7 +12,9 @@
 #include "game.h"
 #include "miscscreens.h"
 #include "network.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 
 #ifdef TINYGL
 #include "zbuffer.h"
@@ -90,6 +92,9 @@ short				gNumRetriesRemaining;
 Boolean				gIsSelfRunningDemo = false;
 float				gSelfRunningDemoTimer;
 
+#ifdef WATCH
+extern bool gCanSteer;
+#endif
 
 //======================================================================================
 //======================================================================================
@@ -922,6 +927,9 @@ static void PlayArea(void)
 
 	while(true)
 	{
+#ifdef WATCH
+        gCanSteer = !gIsSelfRunningDemo;
+#endif
 				/******************************************/
 				/* GET CONTROL INFORMATION FOR THIS FRAME */
 				/******************************************/
@@ -1032,6 +1040,7 @@ static void PlayArea(void)
 			}
 		}
 
+#ifndef WATCH
 		if (GetKeyState(SDL_SCANCODE_L) &&
 			GetKeyState(SDL_SCANCODE_A) &&
 			GetNewKeyState(SDL_SCANCODE_P))
@@ -1044,14 +1053,22 @@ static void PlayArea(void)
 		{
 			gHideInfobar = !gHideInfobar;
 		}
+#endif
 
 
 			/* SEE IF PAUSED */
 
 		if (!gIsSelfRunningDemo)
 		{
-			if (GetNewNeedStateAnyP(kNeed_UIPause))
-				DoPaused();
+            if (GetNewNeedStateAnyP(kNeed_UIPause)) {
+#ifdef WATCH
+        gCanSteer = false;
+#endif
+                DoPaused();
+#ifdef WATCH
+        gCanSteer = true;
+#endif
+            }
 		}
 
 		if (!gIsNetworkClient)						// clients dont need to calc frame rate since its passed to them from host.
@@ -1088,6 +1105,9 @@ static void PlayArea(void)
 			}
 		}
 	}
+#ifdef WATCH
+        gCanSteer = false;
+#endif
 }
 
 

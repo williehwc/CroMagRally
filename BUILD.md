@@ -13,7 +13,7 @@ build.py is the script that is used by the CI setup to produce builds. If you wa
     - [CMake](https://formulae.brew.sh/formula/cmake) 3.16+
 1. Clone the repo **recursively**:
     ```
-    git clone --recurse-submodules https://github.com/jorio/CroMagRally
+    git clone --recurse-submodules https://github.com/williehwc/CroMagRally
     ```
 1. Download [SDL2-2.0.22.dmg](https://libsdl.org/release/SDL2-2.0.22.dmg), open it, and copy **SDL2.framework** to the **extern** folder
 1. Prep the Xcode project:
@@ -33,7 +33,7 @@ build.py is the script that is used by the CI setup to produce builds. If you wa
     - [CMake](https://cmake.org/download/) 3.16+
 1. Clone the repo **recursively**:
     ```
-    git clone --recurse-submodules https://github.com/jorio/CroMagRally
+    git clone --recurse-submodules https://github.com/williehwc/CroMagRally
     ```
 1. Download [SDL2-devel-2.0.22-VC.zip](https://libsdl.org/release/SDL2-devel-2.0.22-VC.zip) and extract the contents into the **extern** folder
 1. Prep the Visual Studio solution:
@@ -55,7 +55,7 @@ build.py is the script that is used by the CI setup to produce builds. If you wa
     - OpenGL development libraries (e.g. "libgl1-mesa-dev" on Ubuntu)
 1. Clone the repo **recursively**:
     ```
-    git clone --recurse-submodules https://github.com/jorio/CroMagRally
+    git clone --recurse-submodules https://github.com/williehwc/CroMagRally
     ```
 1. Build the game:
     ```

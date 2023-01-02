@@ -5,7 +5,9 @@
 
 #include "game.h"
 #include "menu.h"
+#ifndef WATCH
 #include <SDL.h>
+#endif
 
 static void OnPickLanguage(const MenuItem* mi)
 {
@@ -46,7 +48,11 @@ static void OnPickResetGamepadBindings(const MenuItem* mi)
 
 static int GetNumDisplays(void)
 {
+#ifdef WATCH
+    return 1;
+#else
 	return SDL_GetNumVideoDisplays();
+#endif
 }
 
 static const char* GetDisplayName(Byte value)

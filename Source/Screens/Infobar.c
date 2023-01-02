@@ -108,13 +108,21 @@ typedef struct
 
 static const IconPlacement gIconInfo[NUM_INFOBAR_ICONTYPES] =
 {
+#ifdef PORTRAIT
+    [ICON_PLACE]        = { kAnchorTopLeft,       120,  36, 0.6f,   0 },
+#else
 	[ICON_PLACE]		= { kAnchorTopLeft,		  68,  48, 0.9f,   0 },
+#endif
 	[ICON_MAP]			= { kAnchorBottomRight,	 -72, -72, 0.5f,   0 },
 	[ICON_STARTLIGHT]	= { kAnchorCenter,		   0, -72, 1.0f,   0 },
 	[ICON_RACETIMER1]	= { kAnchorBottomLeft,	  80, -29, 0.4f,   0 },
 	[ICON_RACETIMER2]	= { kAnchorBottomLeft,	  14, -29, 0.6f,   0 },
 	[ICON_LAPTIMER]		= { kAnchorBottomLeft,	  14, -100, 0.3f,   0 },
+#ifdef PORTRAIT
+    [ICON_LAP]            = { kAnchorBottomLeft,      48, -42, 0.8f,   0 },
+#else
 	[ICON_LAP]			= { kAnchorBottomLeft,	  36, -42, 0.8f,   0 },
+#endif
 	[ICON_WRONGWAY]		= { kAnchorCenter,		   0, -72, 1.5f,   0 },
 	[ICON_TOKEN]		= { kAnchorTopRight,	-196,  24, 0.4f,  26 },
 	[ICON_WEAPON_RACE]	= { kAnchorTop,			 -16,  36, 0.9f,  42 },
@@ -183,6 +191,12 @@ static float GetIconX(Byte whichPane, int iconID)
 	float dx = gIconInfo[iconID].xFromAnchor;
 	float lw = gGameView->panes[whichPane].logicalWidth;
 
+#ifdef WATCH
+    if (iconID == ICON_PLACE && gIsSelfRunningDemo) {
+        dx = 68;
+    }
+#endif
+    
 	switch (anchor & (kAnchorLeft | kAnchorRight))
 	{
 		case kAnchorLeft:
@@ -429,11 +443,15 @@ static const char*	maps[] =
 
 
 
-
-	float bottomTextY = 225;
+#ifdef PORTRAIT
+	float bottomTextY = 200;
+#else
+    float bottomTextY = 225;
+#endif
 
 			/* PUT SELF-RUNNING DEMO MESSAGE UP */
 
+#ifndef WATCH
 	if (gIsSelfRunningDemo)
 	{
 		NewObjectDefinitionType def =
@@ -450,6 +468,7 @@ static const char*	maps[] =
 
 		bottomTextY -= 32;
 	}
+#endif
 
 
 			/* TAMPER WARNING MESSAGE */
