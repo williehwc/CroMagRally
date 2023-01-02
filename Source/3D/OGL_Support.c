@@ -14,11 +14,20 @@
 #include "stb_image.h"
 #include "pillarbox.h"
 #include <SDL.h>
+#ifdef TINYGL
+#include "GL/gl.h"
+#else
 #include <SDL_opengl.h>
+#endif
 #include <math.h>
 
 extern SDL_Window*		gSDLWindow;
 //extern	GWorldPtr		gTerrainDebugGWorld;
+
+#ifdef TINYGL
+extern ZBuffer* gFrameBuffer;
+extern SDL_Surface* gSurface;
+#endif
 
 _Static_assert(sizeof(OGLColorBGRA16) == 2, "OGLColorBGRA16 must fit on 2 bytes");
 
@@ -51,7 +60,9 @@ static void OGL_UpdatePaneDimensions(Byte whichPane);
 /*    VARIABLES      */
 /*********************/
 
+#ifndef TINYGL
 SDL_GLContext	gAGLContext = nil;
+#endif
 
 
 //OGLMatrix4x4	gViewToFrustumMatrix,gWorldToViewMatrix,gWorldToFrustumMatrix;
@@ -132,10 +143,10 @@ void OGL_Boot(void)
 
 		/* SEE IF SUPPORT 1024x1024 TEXTURES */
 
-	GLint maxTexSize;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
-	if (maxTexSize < 1024)
-		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
+//	GLint maxTexSize;
+//	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+//	if (maxTexSize < 1024)
+//		DoFatalAlert("Your video card cannot do 1024x1024 textures, so it is below the game's minimum system requirements.");
 }
 
 
@@ -272,7 +283,9 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 	OGL_CreateLights(&setupDefPtr->lights);
 	OGL_CheckError();
 
+#ifndef TINYGL
 	SDL_GL_SetSwapInterval(1);//gCommandLine.vsync);
+#endif
 
 
 
@@ -312,7 +325,7 @@ void OGL_SetupGameView(OGLSetupInputType *setupDefPtr)
 
 			/* PRIME PILLARBOX */
 
-	InitPillarbox();
+//	InitPillarbox();
 }
 
 
@@ -347,6 +360,7 @@ static void OGL_CreateDrawContext(void)
 {
 	GAME_ASSERT_MESSAGE(gSDLWindow, "Window must be created before the DC!");
 
+#ifndef TINYGL
 			/* CREATE AGL CONTEXT & ATTACH TO WINDOW */
 
 	gAGLContext = SDL_GL_CreateContext(gSDLWindow);
@@ -362,6 +376,7 @@ static void OGL_CreateDrawContext(void)
 	int mkc = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);
 	GAME_ASSERT_MESSAGE(mkc == 0, SDL_GetError());
 
+#endif
 
 #if 0
 			/* GET OPENGL EXTENSIONS */
@@ -379,6 +394,7 @@ static void OGL_CreateDrawContext(void)
 
 static void OGL_DisposeDrawContext(void)
 {
+#ifndef TINYGL
 	if (!gAGLContext)
 		return;
 
@@ -386,6 +402,7 @@ static void OGL_DisposeDrawContext(void)
 	SDL_GL_DeleteContext(gAGLContext);			// nuke context
 
 	gAGLContext = nil;
+#endif
 }
 
 /**************** OGL: INIT DRAW CONTEXT *********************/
@@ -430,7 +447,7 @@ OGLStyleDefType *styleDefPtr = &setupDefPtr->styles;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);		// set default blend func
 	glDisable(GL_BLEND);									// but turn it off by default
 
-	glDisable(GL_RESCALE_NORMAL);
+//	glDisable(GL_RESCALE_NORMAL);
 
     glHint(GL_FOG_HINT, GL_NICEST);		// pixel accurate fog?
 
@@ -438,25 +455,25 @@ OGLStyleDefType *styleDefPtr = &setupDefPtr->styles;
 
 			/* ENABLE ALPHA CHANNELS */
 
-	glEnable(GL_ALPHA_TEST);
-	glAlphaFunc(GL_NOTEQUAL, 0);	// draw any pixel who's Alpha != 0
+//	glEnable(GL_ALPHA_TEST);
+//	glAlphaFunc(GL_NOTEQUAL, 0);	// draw any pixel who's Alpha != 0
 
 
 		/* SET FOG */
 
 	glHint(GL_FOG_HINT, GL_FASTEST);
 
-	if (styleDefPtr->useFog)
-	{
-		glFogi(GL_FOG_MODE, styleDefPtr->fogMode);
-		glFogf(GL_FOG_DENSITY, styleDefPtr->fogDensity);
-		glFogf(GL_FOG_START, styleDefPtr->fogStart);
-		glFogf(GL_FOG_END, styleDefPtr->fogEnd);
-		glFogfv(GL_FOG_COLOR, &setupDefPtr->view.clearColor.r);
-		glEnable(GL_FOG);
-	}
-	else
-		glDisable(GL_FOG);
+//	if (styleDefPtr->useFog)
+//	{
+//		glFogi(GL_FOG_MODE, styleDefPtr->fogMode);
+//		glFogf(GL_FOG_DENSITY, styleDefPtr->fogDensity);
+//		glFogf(GL_FOG_START, styleDefPtr->fogStart);
+//		glFogf(GL_FOG_END, styleDefPtr->fogEnd);
+//		glFogfv(GL_FOG_COLOR, &setupDefPtr->view.clearColor.r);
+//		glEnable(GL_FOG);
+//	}
+//	else
+//		glDisable(GL_FOG);
 
 	OGL_CheckError();
 }
@@ -540,9 +557,11 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 {
 	GAME_ASSERT(gGameView);										// make sure it's legit
 
+#ifndef TINYGL
 	int makeCurrentRC = SDL_GL_MakeCurrent(gSDLWindow, gAGLContext);		// make context active
 	if (makeCurrentRC != 0)
 		DoFatalAlert(SDL_GetError());
+#endif
 
 
 #if 0
@@ -650,7 +669,20 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
            /* SWAP THE BUFFS */
 
-	SDL_GL_SwapWindow(gSDLWindow);					// end render loop
+#ifdef TINYGL
+    if (SDL_MUSTLOCK(gSurface)) {
+        if (SDL_LockSurface(gSurface) == 0) {
+            ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
+            SDL_UnlockSurface(gSurface);
+        }
+    } else {
+        ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
+    }
+    SDL_UpdateWindowSurface(gSDLWindow);
+#else
+    SDL_GL_SwapWindow(gSDLWindow);                    // end render loop
+#endif
+
 }
 
 
@@ -914,6 +946,7 @@ GLuint OGL_TextureMap_Load(void *imageMemory, int width, int height,
 							GLint srcFormat,  GLint destFormat, GLint dataType)
 {
 GLuint	textureName;
+int numComponents;
 
 
 			/* GET A UNIQUE TEXTURE NAME & INITIALIZE IT */
@@ -939,9 +972,23 @@ GLuint	textureName;
 		OGL_FixTextureGamma(imageMemory, width, height, srcFormat, dataType);
 	}
 
+    if (dataType == GL_UNSIGNED_SHORT_1_5_5_5_REV) {
+#ifdef TINYGL
+        numComponents = 2;
+#else
+        numComponents = 3;
+#endif
+    } else if (srcFormat == GL_RGB) {
+        numComponents = 3;
+    } else if (srcFormat == GL_RGBA) {
+        numComponents = 4;
+    } else {
+        DoFatalAlert("OGL_TextureMap_Load: Not supported");
+    }
+    
 	glTexImage2D(GL_TEXTURE_2D,
 				0,										// mipmap level
-				destFormat,								// format in OpenGL
+                numComponents,							// format in OpenGL
 				width,									// width in pixels
 				height,									// height in pixels
 				0,										// border
@@ -1031,7 +1078,7 @@ Ptr						imageFileData = nil;
 
 void OGL_Texture_SetOpenGLTexture(GLuint textureName)
 {
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+//	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 	if (OGL_CheckError())
 		DoFatalAlert("OGL_Texture_SetOpenGLTexture: glPixelStorei failed!");
 
@@ -1214,7 +1261,7 @@ int	i;
 	gStateStack_DepthTest[i] = glIsEnabled(GL_DEPTH_TEST);
 	gStateStack_Normalize[i] = glIsEnabled(GL_NORMALIZE);
 	gStateStack_Texture2D[i] = glIsEnabled(GL_TEXTURE_2D);
-	gStateStack_Fog[i] 		= glIsEnabled(GL_FOG);
+//	gStateStack_Fog[i] 		= glIsEnabled(GL_FOG);
 	gStateStack_Blend[i] 	= glIsEnabled(GL_BLEND);
 	gStateStack_ProjectionType[i] = gMyState_ProjectionType;
 
@@ -1278,10 +1325,10 @@ int		i;
 	else
 		glDisable(GL_BLEND);
 
-	if (gStateStack_Fog[i])
-		glEnable(GL_FOG);
-	else
-		glDisable(GL_FOG);
+//	if (gStateStack_Fog[i])
+//		glEnable(GL_FOG);
+//	else
+//		glDisable(GL_FOG);
 
 	glDepthMask(gStateStack_DepthMask[i]);
 	glBlendFunc(gStateStack_BlendSrc[i], gStateStack_BlendDst[i]);

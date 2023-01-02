@@ -49,12 +49,14 @@ set(POMME_NO_VIDEO true)
 set(POMME_NO_INPUT true)
 set(POMME_NO_GRAPHICS true)
 set(POMME_NO_QD3D true)
+set(TINYGL_BUILD_STATIC OFF CACHE BOOL "Build libfoo shared library")
 
 #------------------------------------------------------------------------------
 # DEPENDENCIES
 #------------------------------------------------------------------------------
 
 add_subdirectory(extern/Pomme)
+add_subdirectory(extern/tinygl)
 
 find_package(SDL2 REQUIRED COMPONENTS main)
 find_package(OpenGL REQUIRED)
@@ -86,6 +88,7 @@ source_group(TREE ${GAME_SRCDIR} PREFIX "" FILES ${GAME_ALL_SOURCES})
 
 set(GAME_LIBRARIES
 	Pomme
+	tinygl
 	${SDL2_LIBRARIES}
 	OpenGL::GL
 )
@@ -116,6 +119,7 @@ target_include_directories(${GAME_TARGET} PRIVATE
 	${SDL2_INCLUDE_DIRS}
 	${OPENGL_INCLUDE_DIR}
 	extern/Pomme/src
+	extern/tinygl/include
 	${GAME_SRCDIR}/Headers
 )
 

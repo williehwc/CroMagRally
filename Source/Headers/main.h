@@ -2,6 +2,11 @@
 // main.h
 //
 
+#ifdef TINYGL
+#include "zbuffer.h"
+#include <SDL.h>
+#endif
+
 #pragma once
 
 #define	MAX_PLAYERS			6

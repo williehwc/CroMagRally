@@ -10,7 +10,11 @@
 #include "menu.h"
 
 #include <SDL.h>
+#ifdef TINYGL
+#include "GL/gl.h"
+#else
 #include <SDL_opengl.h>
+#endif
 #include <math.h>
 #include <string.h>
 
@@ -1030,11 +1034,11 @@ static void NavigateCycler(const MenuItem* entry)
 
 		gTempForceSwipeRTL = (delta == -1);
 
-		ObjNode* node;
-		if (entry->type == kMICycler1)
-			node = LayOutCycler1(gNav->menuRow);
-		else
-			node = LayOutCycler2ValueText(gNav->menuRow);
+//		ObjNode* node;
+//		if (entry->type == kMICycler1)
+//			node = LayOutCycler1(gNav->menuRow);
+//		else
+//			node = LayOutCycler2ValueText(gNav->menuRow);
 
 		RepositionArrows();
 

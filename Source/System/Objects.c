@@ -30,7 +30,7 @@ static void DrawPathVec(short p);
 /****************************/
 
 #define ALLOW_GL_CLIP_HINTS		0
-#define	DO_EDGE_ALPHA_CLIPPING	1
+#define	DO_EDGE_ALPHA_CLIPPING	0
 
 #define	OBJ_DEL_Q_SIZE	100
 

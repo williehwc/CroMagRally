@@ -2,7 +2,6 @@
 // (C) 2022 Iliyas Jorio
 // This file is part of Cro-MagRally. https://github.com/jorio/cromagrally
 
-#include <SDL.h>
 #include "Pomme.h"
 #include "PommeInit.h"
 #include "PommeFiles.h"
@@ -17,6 +16,13 @@
 
 extern "C"
 {
+    #include <SDL.h>
+
+#ifdef TINYGL
+    #include "GL/gl.h"
+    #include "zbuffer.h"
+#endif
+
 	#include "game.h"
 	#include "version.h"
 
@@ -24,6 +30,11 @@ extern "C"
 	FSSpec gDataSpec;
 	CommandLineOptions gCommandLine;
 	int gCurrentAntialiasingLevel;
+
+#ifdef TINYGL
+    ZBuffer* gFrameBuffer = NULL;
+    SDL_Surface* gSurface = NULL;
+#endif
 
 #if 0 //_WIN32
 	// Tell Windows graphics driver that we prefer running on a dedicated GPU if available
@@ -157,6 +168,7 @@ retryVideo:
 	}
 
 	// Create window
+#ifndef TINYGL
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_COMPATIBILITY);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
@@ -167,6 +179,7 @@ retryVideo:
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 		SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1 << gCurrentAntialiasingLevel);
 	}
+#endif
 
 	int display = gGamePrefs.monitorNum;
 	if (display >= SDL_GetNumVideoDisplays())
@@ -176,15 +189,21 @@ retryVideo:
 
 	int initialWidth = 640;
 	int initialHeight = 480;
-	GetInitialWindowSize(display, initialWidth, initialHeight);
+	//GetInitialWindowSize(display, initialWidth, initialHeight);
 
+#ifdef TINYGL
+    int windowFlags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;
+#else
+    int windowFlags = SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN;
+#endif
+    
 	gSDLWindow = SDL_CreateWindow(
 			"Cro-Mag Rally " PROJECT_VERSION,
 			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
 			SDL_WINDOWPOS_UNDEFINED_DISPLAY(display),
 			initialWidth,
 			initialHeight,
-			SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+			windowFlags);
 
 	if (!gSDLWindow)
 	{
@@ -203,6 +222,12 @@ retryVideo:
 		}
 	}
 
+#ifdef TINYGL
+    gSurface = SDL_GetWindowSurface(gSDLWindow);
+    gFrameBuffer = ZB_open(640, 480, ZB_MODE_RGBA, 0);
+    glInit(gFrameBuffer);
+#endif
+    
 	// Find path to game data folder
 	fs::path dataPath = FindGameData();
 

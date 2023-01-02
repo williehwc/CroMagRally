@@ -563,124 +563,53 @@ int	numChildren,i;
 
 void MO_DrawGeometry_VertexArray(const MOVertexArrayData *data)
 {
-Boolean		useTexture = false;
+Boolean     useTexture     = false;
+Boolean     useNormals     = false;
+Boolean     useColorsFloat = false;
+Boolean     useColorsByte  = false;
 
-			/**********************/
-			/* SETUP VERTEX ARRAY */
-			/**********************/
-
-	glEnableClientState(GL_VERTEX_ARRAY);				// enable vertex arrays
-	glVertexPointer(3, GL_FLOAT, 0, data->points);		// point to point array
-
-	if (OGL_CheckError())
-		DoFatalAlert("MO_DrawGeometry_VertexArray: glVertexPointer!");
-
-			/************************/
-			/* SETUP VERTEX NORMALS */
-			/************************/
-
-	if (data->normals && gMyState_Lighting)				// do we have normals & lighting
-	{
-		glNormalPointer(GL_FLOAT, 0, data->normals);
-		glEnableClientState(GL_NORMAL_ARRAY);			// enable normal arrays
-	}
-	else
-		glDisableClientState(GL_NORMAL_ARRAY);			// disable normal arrays
-
-	if (OGL_CheckError())
-		DoFatalAlert("MO_DrawGeometry_VertexArray: normals!");
-
-			/****************************/
-			/* SEE IF ACTIVATE MATERIAL */
-			/****************************/
-			//
-			// For now, I'm just looking at material #0.
-			//
-
-	if (data->numMaterials < 0)							// if (-), then assume texture has been manually set
-		goto use_current;
-
-	if (data->numMaterials > 0)									// are there any materials?
-	{
-		MO_DrawMaterial(data->materials[0]);					// submit material #0
-
-			/* IF TEXTURED, THEN ALSO ACTIVATE UV ARRAY */
-
-		if (data->materials[0]->objectData.flags & BG3D_MATERIALFLAG_TEXTURED)
-		{
-use_current:
-			if (data->uvs)
-			{
-				if (OGL_CheckError())
-					DoFatalAlert("MO_DrawGeometry_VertexArray: preeeeee uv!");
-
-				glTexCoordPointer(2, GL_FLOAT, 0,data->uvs);
-				glEnableClientState(GL_TEXTURE_COORD_ARRAY);	// enable uv arrays
-				useTexture = true;
-
-				if (OGL_CheckError())
-					DoFatalAlert("MO_DrawGeometry_VertexArray: uv!");
-			}
-		}
-	}
-	else
-		glDisable(GL_TEXTURE_2D);						// no materials, thus no texture, thus turn this off
-
-
-		/* WE DONT HAVE ENOUGH INFO TO DO TEXTURES, SO DISABLE */
-
-	if (!useTexture)
-	{
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		if (OGL_CheckError())
-			DoFatalAlert("MO_DrawGeometry_VertexArray: glDisableClientState(GL_TEXTURE_COORD_ARRAY)!");
-	}
-
-
-			/***********************/
-			/* SETUP VERTEX COLORS */
-			/***********************/
-
-			/* IF LIGHTING, THEN USE COLOR FLOATS */
-
-	if (gMyState_Lighting)
-	{
-		if (data->colorsFloat)									// do we have colors?
-		{
-			glColorPointer(4, GL_FLOAT, 0, data->colorsFloat);
-			glEnableClientState(GL_COLOR_ARRAY);				// enable color arrays
-		}
-		else
-			glDisableClientState(GL_COLOR_ARRAY);				// disable color arrays
-	}
-
-			/* IF NOT LIGHTING, THEN USE COLOR BYTES */
-
-	else
-	{
-		if (data->colorsByte)									// do we have colors?
-		{
-			glColorPointer(4, GL_UNSIGNED_BYTE, 0, data->colorsByte);
-			glEnableClientState(GL_COLOR_ARRAY);				// enable color arrays
-		}
-		else
-			glDisableClientState(GL_COLOR_ARRAY);				// disable color arrays
-	}
-
-	if (OGL_CheckError())
-		DoFatalAlert("MO_DrawGeometry_VertexArray: color!");
-
-
-			/***********/
-			/* DRAW IT */
-			/***********/
-
-
-//	glLockArraysEXT(0, data->numPoints);
-	glDrawElements(GL_TRIANGLES,data->numTriangles*3,GL_UNSIGNED_INT,&data->triangles[0]);
-	if (OGL_CheckError())
-		DoFatalAlert("MO_DrawGeometry_VertexArray: glDrawElements");
-//	glUnlockArraysEXT();
+    if (data->numMaterials > 0) {
+        MO_DrawMaterial(data->materials[0]);
+    }
+    
+    if ((data->numMaterials < 0 || (data->materials[0]->objectData.flags & BG3D_MATERIALFLAG_TEXTURED)) && data->uvs) {
+        useTexture = true;
+    }
+    
+    if (data->normals && gMyState_Lighting) {
+        useNormals = true;
+    }
+    
+    if (gMyState_Lighting) {
+        if (data->colorsFloat) {
+            useColorsFloat = true;
+        }
+    } else {
+        if (data->colorsByte) {
+            useColorsByte = true;
+        }
+    }
+    
+    glBegin(GL_TRIANGLES);
+    
+    for (int i = 0; i < data->numTriangles; i++) {
+        for (int j = 0; j < 3; j++) {
+            GLuint index = data->triangles[i].vertexIndices[j];
+            // TEXTURE
+            if (useTexture) {
+                glTexCoord2f(data->uvs[index].u, data->uvs[index].v);
+            }
+            // NORMALS
+            if (useNormals) {
+                glNormal3f(data->normals[index].x, data->normals[index].y, data->normals[index].z);
+            }
+            // VERTICES
+            glVertex3f(data->points[index].x, data->points[index].y, data->points[index].z);
+            // COLOR
+            
+        }
+    }
+    glEnd();
 
 	gPolysThisFrame += data->numPoints;					// inc poly counter
 }
@@ -757,12 +686,12 @@ uint32_t				matFlags;
 					/* SET TEXTURE WRAPPING MODE */
 
 		if (matFlags & BG3D_MATERIALFLAG_CLAMP_U)
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 		else
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
 		if (matFlags & BG3D_MATERIALFLAG_CLAMP_V)
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 		else
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	}
@@ -803,10 +732,10 @@ uint32_t				matFlags;
 		/* SEE IF NEED TO ENABLE BLENDING */
 
 
-	if (textureHasAlpha || (diffColor2.a != 1.0f) || (matFlags & BG3D_MATERIALFLAG_ALWAYSBLEND))		// if has alpha, then we need blending on
-	    glEnable(GL_BLEND);
-	else
-	    glDisable(GL_BLEND);
+//	if (textureHasAlpha || (diffColor2.a != 1.0f) || (matFlags & BG3D_MATERIALFLAG_ALWAYSBLEND))		// if has alpha, then we need blending on
+//	    glEnable(GL_BLEND);
+//	else
+//	    glDisable(GL_BLEND);
 
 
 			/* SAVE THIS STUFF */
@@ -1342,7 +1271,8 @@ uint32_t		pictRowBytes;
 		Ptr imageData = LoadDataFile(path, &imageLength);
 		GAME_ASSERT(imageData);
 
-		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, NULL, 4);
+        int nch;
+		pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, &nch, 4);
 		GAME_ASSERT(pictMapAddr);
 
 		SafeDisposePtr(imageData);

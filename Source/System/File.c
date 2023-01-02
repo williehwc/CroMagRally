@@ -1482,8 +1482,8 @@ static void LoadTerrainSuperTileTextures(short fRefNum)
 														GL_BGRA, GL_RGB, GL_UNSIGNED_SHORT_1_5_5_5_REV);
 
 		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[i]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);		// set clamp mode after each texture set since OGL just likes it that way
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);		// set clamp mode after each texture set since OGL just likes it that way
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}
 
 	SafeDisposePtr(lzss);
@@ -1614,8 +1614,8 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 
 		// Clamp to edge
 		OGL_Texture_SetOpenGLTexture(gSuperTileTextureNames[unique]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 	}
 
 #undef TILEIMAGE

@@ -14,6 +14,9 @@
 #include "network.h"
 #include <SDL.h>
 
+#ifdef TINYGL
+#include "zbuffer.h"
+#endif
 
 /****************************/
 /*    PROTOTYPES            */
