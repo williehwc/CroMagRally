@@ -309,6 +309,11 @@ Boolean			flag;
 			DoAlert("Illegal Map Item Type!");
 			ShowSystemErr(type);
 		}
+        
+#ifdef TINYGL
+		// Don't show dragons (The Great Wall) for performance reasons
+		if (type==59) continue;
+#endif
 
 		flag = gTerrainItemAddRoutines[type](&itemPtr[i],itemPtr[i].x, itemPtr[i].y); // call item's ADD routine
 		if (flag)

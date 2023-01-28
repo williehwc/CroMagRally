@@ -133,6 +133,11 @@ void LoadCavemanSkins(void);
 void DisposeCavemanSkins(void);
 void SetDefaultDirectory(void);
 
+#ifdef TINYGL
+void LoadBackground(const char* path);
+void DisposeBackground();
+#endif
+
 void SetDefaultPlayerSaveData(void);
 void SavePlayerFile(void);
 int GetNumAgesCompleted(void);

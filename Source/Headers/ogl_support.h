@@ -368,5 +368,9 @@ void OGL_DisableLighting(void);
 
 void OGL_SetProjection(int projectionType);
 
+#ifdef TINYGL
+void copyFrameBuffer(void *dest, int pitch);
+#endif
+
 #define GetOverlayPaneNumber() (gNumSplitScreenPanes)
 

@@ -13,6 +13,9 @@
 #include "game.h"
 #include "bones.h"
 #include "lzss.h"
+#ifdef TINYGL
+#include "stb_image.h"
+#endif
 #include <string.h>
 
 /****************************/
@@ -43,6 +46,13 @@ static void LoadSelectedGame(void);
 
 #define	SAVE_PLAYER_VERSION	0x0100		// 1.0
 
+#ifdef TINYGL
+
+#define BACKGROUND_WIDTH 512
+
+#define BACKGROUND_HEIGHT 256
+
+#endif
 
 
 		/* PLAYFIELD HEADER */
@@ -98,6 +108,15 @@ MOMaterialObject* gCavemanSkins[2][NUM_CAVEMAN_SKINS];
 
 PrefsType gDiskShadowPrefs;
 
+#ifdef TINYGL
+
+PIXEL* gBackground;
+
+float gBackgroundRatio;
+
+PIXEL* gBackgroundCanvas = NULL;
+
+#endif
 
 /****************** SET DEFAULT DIRECTORY ********************/
 //
@@ -806,6 +825,58 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 	":models:ramps.bg3d"
 };
 
+#ifdef TINYGL
+#ifdef WATCH
+static const char*    backgroundFiles[NUM_TRACKS] =
+{
+    ":backgrounds:desert.png",
+    ":backgrounds:jungle.png",
+    ":backgrounds:ice.png",
+
+    ":backgrounds:crete.png",
+    ":backgrounds:china.png",
+    ":backgrounds:egypt.png",
+
+    ":backgrounds:europe.png",
+    ":backgrounds:scandinavia.png",
+    ":backgrounds:atlantis.png",
+
+    ":backgrounds:stonehenge.png",
+    ":backgrounds:aztec.png",
+    ":backgrounds:coliseum.png",
+    ":backgrounds:crete.png",
+    ":backgrounds:crete.png",
+    ":backgrounds:tarpits.png",
+    ":backgrounds:crete.png",
+    ":backgrounds:ramps.png"
+};
+#else
+static const char*    backgroundFiles[NUM_TRACKS] =
+{
+    ":backgroundsbgr:desert.png",
+    ":backgroundsbgr:jungle.png",
+    ":backgroundsbgr:ice.png",
+
+    ":backgroundsbgr:crete.png",
+    ":backgroundsbgr:china.png",
+    ":backgroundsbgr:egypt.png",
+
+    ":backgroundsbgr:europe.png",
+    ":backgroundsbgr:scandinavia.png",
+    ":backgroundsbgr:atlantis.png",
+
+    ":backgroundsbgr:stonehenge.png",
+    ":backgroundsbgr:aztec.png",
+    ":backgroundsbgr:coliseum.png",
+    ":backgroundsbgr:crete.png",
+    ":backgroundsbgr:crete.png",
+    ":backgroundsbgr:tarpits.png",
+    ":backgroundsbgr:crete.png",
+    ":backgroundsbgr:ramps.png"
+};
+#endif
+#endif
+
 
 	GAME_ASSERT_MESSAGE((size_t)gTrackNum < (size_t)NUM_TRACKS, "illegal track#!");
 
@@ -943,6 +1014,13 @@ static const char*	levelModelFiles[NUM_TRACKS] =
 
 	FSMakeFSSpec(gDataSpec.vRefNum, gDataSpec.parID, terrainFiles[gTrackNum], &spec);
 	LoadPlayfield(&spec);
+    
+    
+#ifdef TINYGL
+            /* LOAD BACKGROUND */
+    
+    LoadBackground(backgroundFiles[gTrackNum]);
+#endif
 }
 
 
@@ -1638,6 +1716,59 @@ static void LoadTerrainSuperTileTexturesSeamless(short fRefNum)
 	SafeDisposePtr(allImages);
 	SafeDisposePtr(canvas);
 }
+#endif
+
+
+
+#ifdef TINYGL
+
+/******************* LOAD BACKGROUND *******************/
+
+void LoadBackground(const char* path)
+{
+int             width,height;
+Ptr             pictMapAddr;
+    
+    long imageLength = 0;
+    Ptr imageData = LoadDataFile(path, &imageLength);
+    GAME_ASSERT(imageData);
+
+    int nch;
+    pictMapAddr = (Ptr) stbi_load_from_memory((const stbi_uc*) imageData, imageLength, &width, &height, &nch, 4);
+    GAME_ASSERT(pictMapAddr);
+
+    SafeDisposePtr(imageData);
+    imageData = NULL;
+    
+    // Assert image size
+    GAME_ASSERT(width == BACKGROUND_WIDTH);
+    GAME_ASSERT(height == BACKGROUND_HEIGHT);
+    
+    // Set image-to-screen ratio
+    gBackgroundRatio = (float) BACKGROUND_HEIGHT / gGameWindowHeight;
+    
+    // Copy to buffer
+    int backgroundSize = width * height * sizeof(PIXEL);
+    gBackground = malloc(backgroundSize);
+    memcpy(gBackground, pictMapAddr, backgroundSize);
+    
+    // Allocate canvas
+    gBackgroundCanvas = malloc(gGameWindowWidth * gGameWindowHeight * sizeof(PIXEL));
+    
+    stbi_image_free(pictMapAddr);
+    pictMapAddr = nil;
+}
+
+
+
+/******************* DISPOSE BACKGROUND *******************/
+void DisposeBackground()
+{
+    free(gBackground);
+    free(gBackgroundCanvas);
+    gBackgroundCanvas = NULL;
+}
+
 #endif
 
 

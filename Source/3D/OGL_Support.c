@@ -30,10 +30,10 @@ extern SDL_Window*		gSDLWindow;
 
 #ifdef TINYGL
 extern ZBuffer* gFrameBuffer;
+extern PIXEL* gBackgroundCanvas;
 #ifdef WATCH
 extern PIXEL* gPixels;
 extern GLint gPitch;
-extern bool gLock;
 #else
 extern SDL_Surface* gSurface;
 #endif
@@ -619,7 +619,11 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 	if (gGameView->clearBackBuffer || (gDebugMode == 3))
 	{
+#ifdef TINYGL
+		glClear(GL_DEPTH_BUFFER_BIT);
+#else
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+#endif
 	}
 	else
 	{
@@ -688,17 +692,15 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 #ifdef TINYGL
 #ifdef WATCH
-    gLock = true;
-    ZB_copyFrameBuffer(gFrameBuffer, gPixels, gPitch);
-    gLock = false;
+    copyFrameBuffer(gPixels, gPitch);
 #else
     if (SDL_MUSTLOCK(gSurface)) {
         if (SDL_LockSurface(gSurface) == 0) {
-            ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
+            copyFrameBuffer(gSurface->pixels, gSurface->pitch);
             SDL_UnlockSurface(gSurface);
         }
     } else {
-        ZB_copyFrameBuffer(gFrameBuffer, gSurface->pixels, gSurface->pitch);
+        copyFrameBuffer(gSurface->pixels, gSurface->pitch);
     }
     SDL_UpdateWindowSurface(gSDLWindow);
 #endif
@@ -708,6 +710,12 @@ void OGL_DrawScene(void (*drawRoutine)(void))
 
 }
 
+#ifdef TINYGL
+void copyFrameBuffer(void *dest, int pitch)
+{
+    ZB_copyFrameBuffer(gFrameBuffer, dest, pitch, gBackgroundCanvas);
+}
+#endif
 
 /********************** OGL: GET CURRENT VIEWPORT ********************/
 //

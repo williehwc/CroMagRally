@@ -4,8 +4,8 @@ This fork of CroMagRally replaces OpenGL rendering with TinyGL software renderin
 
 ## Known issues
 
-- The sky box is warped. It is probably caused by incorrect sampling of textures for faraway polygons.
-- The fences sometimes disappear temporarily. This issue can be easily observed in the Great Wall course.
+- The sky box has been replaced by a 2D scrolling background. The original 3D sky box is warped due to incorrect sampling of textures for faraway polygons.
+- The fences disappear temporarily when a lot of polygons are on screen. This issue was especially visible in the Great Wall course, so the dragons have been removed.
 - Dirt and smoke particle effects are not visible.
 - Skid marks are not visible.
 

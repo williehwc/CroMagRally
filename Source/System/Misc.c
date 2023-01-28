@@ -11,7 +11,9 @@
 
 #include "game.h"
 #include "network.h"
-#ifndef WATCH
+#ifdef WATCH
+#include <unistd.h>
+#else
 #include <SDL.h>
 #endif
 #include <math.h>
@@ -27,6 +29,9 @@ extern	SDL_Window* 	gSDLWindow;
 /****************************/
 
 #define	DEFAULT_FPS			9
+#ifdef WATCH
+#define TARGET_DELTA_TIME   11111
+#endif
 
 /**********************/
 /*     VARIABLES      */
@@ -389,6 +394,13 @@ unsigned long deltaTime;
 	Microseconds(&currTime);
 	deltaTime = currTime.lo - time.lo;
 
+#ifdef WATCH
+    // Throttle to 90 FPS maximum
+    if (deltaTime < TARGET_DELTA_TIME) {
+        usleep(TARGET_DELTA_TIME - deltaTime);
+    }
+#endif
+    
 	gFramesPerSecond = 1000000.0f / deltaTime;
 
 	if (gFramesPerSecond < DEFAULT_FPS)			// (avoid divide by 0's later)

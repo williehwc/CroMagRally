@@ -44,7 +44,6 @@ extern "C"
     PIXEL* gPixels = NULL;
     bool gPixelsReady = false;
     GLint gPitch = NULL;
-    bool gLock = false;
     std::string gDataPath = "";
     Byte gInputFlags = 0;
     bool gInputDecel = false;

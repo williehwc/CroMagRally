@@ -32,6 +32,10 @@ static void ReleaseAllSuperTiles(void);
 #define	ITEM_WINDOW		SUPERTILE_ITEMRING_MARGIN	// # supertiles for item add window (must be integer)
 #define	OUTER_SIZE		0 //0.6f						// size of border out of add window for delete window (can be float)
 
+#ifdef TINYGL
+#define BACKGROUND_WIDTH  512
+#define BACKGROUND_HEIGHT 256
+#endif
 
 #undef TERRAIN_DEBUG_GWORLD
 
@@ -97,6 +101,14 @@ MOVertexArrayData		*gSuperTileMeshData = nil;
 OGLPoint3D				*gSuperTileCoords = nil;
 MOTriangleIndecies		*gSuperTileTriangles = nil;
 OGLTextureCoord			*gSuperTileUVs = nil;
+
+
+#ifdef TINYGL
+extern int              gGameWindowWidth, gGameWindowHeight;
+extern PIXEL*           gBackground;
+extern float            gBackgroundRatio;
+extern PIXEL*           gBackgroundCanvas;
+#endif
 
 
 /****************** INIT TERRAIN MANAGER ************************/
@@ -272,6 +284,11 @@ int	i;
     DisposePathGrid();
 
 	ReleaseAllSuperTiles();
+    
+            /* FREE BACKGROUND */
+#ifdef TINYGL
+    DisposeBackground();
+#endif
 }
 
 
@@ -764,6 +781,27 @@ uint32_t			pictRowBytes;
 	}
 #endif
 
+    
+        /* DRAW BACKGROUND */
+#ifdef TINYGL
+    float xSrc, xSrcOrigin = fmodf(- gPlayerInfo[0].cameraRingRot, PI) / PI * BACKGROUND_WIDTH;
+    float ySrc = 64;
+    if (gTrackNum == TRACK_NUM_ATLANTIS) {
+        ySrc = 0;
+    }
+    for (int y = 0; y < gGameWindowHeight; y++) {
+        for (int x = 0; x < gGameWindowWidth; x++) {
+            if (xSrc > BACKGROUND_WIDTH) {
+                xSrc = 0;
+            }
+            gBackgroundCanvas[y * gGameWindowWidth + x] = gBackground[(int) ySrc * BACKGROUND_WIDTH + (int) xSrc];
+            xSrc += gBackgroundRatio;
+        }
+        ySrc += gBackgroundRatio;
+        xSrc = xSrcOrigin;
+    }
+    printf("Camera: %f\n", gPlayerInfo[0].camera.cameraLocation.y);
+#endif
 
 
 		/* GET CURRENT CAMERA COORD */
@@ -775,7 +813,15 @@ uint32_t			pictRowBytes;
 
 	if (gCycloramaObj)
 	{
+#ifdef TINYGL
+		OGLVector3D vector;
+        vector.x = 0;
+        vector.y = 0;
+        vector.z = 0;
+		gCycloramaObj->Scale = vector;
+#else
 		gCycloramaObj->Coord = cameraCoord;
+#endif
 		UpdateObjectTransforms(gCycloramaObj);
 	}
 
